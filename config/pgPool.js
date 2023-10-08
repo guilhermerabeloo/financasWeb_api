@@ -2,13 +2,14 @@ import pg from 'pg';
 import dotenv from "dotenv";
 
 const { Pool } = pg;
+
 const env = dotenv.config().parsed;
 
 const dbConfig = {
     host: env.PG_HOST,
     database: env.PG_DATABASE,
     user: env.PG_USER,
-    password: env.PG_PWS,
+    password: env.PG_PWD,
     port: env.PG_PORT,
     max: 10,
     idleTimeoutMillis: 5000,
@@ -49,7 +50,7 @@ async function pgPool(sqlQuery, values) {
                         })
                 } else {
                     client
-                        .query(sqlQuery, values)
+                        .query(sqlQuery)
                         .then((e) => {
                             resolve(e);
                         })

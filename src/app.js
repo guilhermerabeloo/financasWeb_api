@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import pg from 'pg';
+import routes from './routes/index.js';
 import cors from 'cors';
 
 const { Pool } = pg;
@@ -39,6 +40,8 @@ global.pg.on('connect', () => {
 
 const app = express();
 app.use(express.json());
+
+routes(app);
 
 app.use(cors({
     origin: 'http://localhost:5173'
