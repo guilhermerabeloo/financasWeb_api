@@ -1,5 +1,9 @@
 import pgPool from "../../config/pgPool.js";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from 'dotenv';
+
+const env = dotenv.config().parsed;
 
 function Auth() {}
 
@@ -41,9 +45,47 @@ Auth.prototype.criaUsuario = async (req, res) => {
 }
 
 Auth.prototype.validaUsuario = async (req, res) => {
-    return new Promise((resolve, reject) => {
+    const { Email, Senha } = req.body;
 
-    })
+    try {
+        const userQuery = await pgPool(`SELECT * FROM usuarios WHERE email = '${Email}'`)
+        if(userQuery.rowCount == 0) {
+            const result = {
+                code: 401,
+                msg: false,
+                hint: "Email não cadastrado"
+            };
+            throw result
+        };
+
+        const user = userQuery.rows[0];
+        const verificacaoSenha = await bcrypt.compare(Senha, user.senha_hash);
+        if(!verificacaoSenha) {
+            const result = {
+                code: 401,
+                msg: false,
+                hint: "Senha inválida"
+            }
+
+            throw result
+        };
+
+        const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '100h' });
+        const result = {
+            code: 200,
+            msg: true,
+            token: token,
+        };
+
+        return result;
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || "Erro interno",
+            msg: err.msg || false,
+        };
+        throw result;
+    }
 }
 
 export default Auth;
