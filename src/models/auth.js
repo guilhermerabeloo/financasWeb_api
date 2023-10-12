@@ -12,36 +12,48 @@ Auth.prototype.criaUsuario = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashSenha = await bcrypt.hash(Senha, salt);
 
-    return new Promise((resolve, reject) => {
-        pgPool(`
-            INSERT INTO usuarios
-            (nome, email, senha_hash)
-            VALUES
-            ($1, $2, $3)
-        `,
-        [
-            req.body.Nome,
-            req.body.Email,
-            hashSenha,
-        ])
-        .then(() => {
+    try {
+        const emailQuery = await pgPool(`SELECT * FROM usuarios WHERE email = '${req.body.Email}'`);
+        if(emailQuery.rowCount > 0) {
             const result = {
-                code: 200,
-                data: "Usuário cadastrado com sucesso!",
-                msg: true,
-            }
-            resolve(result)
-        })
-        .catch((err) => {
-            const result = {
-                code: 500,
-                hint: 'Erro interno',
+                code: 400,
+                hint: 'Usuário já cadastrado',
                 msg: false,
-                error: err.stack,
             }
-            reject(result)
-        })
-    })
+
+            throw result
+        }
+
+        await pgPool(
+            `
+                INSERT INTO usuarios
+                (nome, email, senha_hash)
+                VALUES
+                ($1, $2, $3)
+            `,
+            [
+                req.body.Nome,
+                req.body.Email,
+                hashSenha,
+            ]);
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: "Usuário cadastrado com sucesso!",
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
+        }
+        
+        return result
+    }
 }
 
 Auth.prototype.validaUsuario = async (req, res) => {
