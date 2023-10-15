@@ -41,10 +41,17 @@ global.pg.on('connect', () => {
 const app = express();
 app.use(express.json());
 
-routes(app);
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'http://localhost:5173',
 }))
+
+routes(app);
 
 export default app;
