@@ -10,6 +10,7 @@ create table usuarios (
 create table checklistMensal (
 	id SERIAL,
 	item VARCHAR(50) not null,
+	valor NUMERIC(9,2) NOT null,
 	dia_mes INTEGER not null,
 	user_id INTEGER not null,
 	data_create TIMESTAMP DEFAULT current_timestamp not null,
