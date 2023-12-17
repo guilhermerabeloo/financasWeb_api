@@ -87,6 +87,8 @@ Auth.prototype.validaUsuario = async (req, res) => {
             code: 200,
             msg: true,
             token: token,
+            username: user.Nome,
+            userId: user.id
         };
 
         return result;
