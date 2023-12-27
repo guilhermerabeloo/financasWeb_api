@@ -3,23 +3,25 @@ import pgPool from "../../config/pgPool.js"
 function Checklist(){}
 
 Checklist.prototype.buscaChecklist = async (req, res) => {
-    const usuario = req.params.user;
+    const email = req.params.email;
 
     try {
         const sqlQuery = `
             select 
                 cl.id,
                 cl.item,
+                cl.valor,
                 cl.dia_mes,
                 case
                     when m.checklistMensal_id is null then 0
                     else 1
                 end as checked
-                
             from checklistMensal as cl
+            left join usuarios as u on u.id = cl.user_id 
             left join movimento as m on cl.id = m.checklistMensal_id
             where 
-                cl.user_id = ${usuario}
+                u.email = '${email}'
+            order by 5, 4 
         `
 
         const data = await pgPool(sqlQuery)

@@ -4,6 +4,6 @@ import ChecklistController from "../controllers/checklist.js";
 const router = express.Router();
 
 router
-    .get('/checklistUsuario/:user', ChecklistController.itensDoChecklist)
+    .get('/checklistUsuario/:email', ChecklistController.itensDoChecklist)
 
 export default router;
