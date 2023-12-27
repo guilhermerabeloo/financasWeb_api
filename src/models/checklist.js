@@ -44,4 +44,56 @@ Checklist.prototype.buscaChecklist = async (req, res) => {
     }
 }
 
+Checklist.prototype.criaItemChecklist = async (req, res) => {
+    const { email, item, valor, dia_mes } = req.body;
+
+    try {
+        if(!email || !item || !valor || !dia_mes) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        await pgPool(`
+            INSERT INTO checklistmensal 
+            (item, valor, dia_mes, user_id)
+            VALUES
+            ($1, $2, $3, $4)
+        `, [item, valor, dia_mes, userId])
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: "Item de checklist cadastrado com sucesso!",
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
+        }
+        
+        return result
+    }
+}
+
 export default Checklist;
