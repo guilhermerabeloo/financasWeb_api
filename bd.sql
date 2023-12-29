@@ -52,3 +52,19 @@ FOREIGN KEY (tipoMovimento_id) REFERENCES tipoMovimento(id)
 ALTER TABLE movimento ADD CONSTRAINT FK_movimento_checklistMensal
 FOREIGN KEY (checklistMensal_id) REFERENCES checklistMensal(id)
 
+
+CREATE TABLE temp_checklistmensal (
+	id SERIAL,
+	item_id INTEGER,
+	data_create TIMESTAMP,
+	data DATE,
+	checked CHAR(1),
+	
+	primary key(id)
+)
+
+ALTER TABLE temp_checklistmensal
+ADD CONSTRAINT fk_tempChecklist_checklist
+FOREIGN KEY (item_id) REFERENCES checklistmensal(id)
+
+

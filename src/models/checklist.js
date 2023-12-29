@@ -7,21 +7,21 @@ Checklist.prototype.buscaChecklist = async (req, res) => {
 
     try {
         const sqlQuery = `
-            select 
-                cl.id,
-                cl.item,
-                cl.valor,
-                cl.dia_mes,
-                case
-                    when m.checklistMensal_id is null then 0
-                    else 1
-                end as checked
-            from checklistMensal as cl
-            left join usuarios as u on u.id = cl.user_id 
-            left join movimento as m on cl.id = m.checklistMensal_id
-            where 
-                u.email = '${email}'
-            order by 5, 4 
+        select 
+            ch.id,
+            ch.item,
+            ch.valor,
+            ch.dia_mes,
+            case
+                when tch.checked = '1' then 1
+                else 0
+            end checked
+        from checklistMensal as ch
+        left join usuarios as u on u.id = ch.user_id 
+        left join temp_checklistmensal as tch on ch.id = tch.item_id
+        where 
+            u.email = '${email}'
+        order by 5, 4 
         `
 
         const data = await pgPool(sqlQuery)
@@ -97,11 +97,10 @@ Checklist.prototype.criaItemChecklist = async (req, res) => {
 }
 
 Checklist.prototype.marcaItemChecklist = async (req, res) => {
-    const { descricao, data, valor, tipomovimento_id, email, checklistmensal_id } = req.body;
-    console.log(descricao, data, valor, tipomovimento_id, email, checklistmensal_id)
+    const { checklistmensal_id, data, email  } = req.body;
 
     try {
-        if(!descricao || !data || !valor || !tipomovimento_id || !email || !checklistmensal_id) {
+        if(!data || !email || !checklistmensal_id) {
             const result = {
                 code: 400,
                 hint: 'Parâmetros inválidos',
@@ -124,11 +123,11 @@ Checklist.prototype.marcaItemChecklist = async (req, res) => {
         }
 
         await pgPool(`
-            INSERT INTO movimento 
-            (descricao, data, valor, tipomovimento_id, user_id, checklistmensal_id)
+            INSERT INTO temp_checklistmensal 
+            (item_id, data, checked)
             VALUES
-            ($1, $2, $3, $4, $5, $6)
-        `, [descricao, data, valor, tipomovimento_id, userId, checklistmensal_id])
+            ($1, $2, $3)
+        `, [checklistmensal_id, data, 1])
 
         const result = {
             code: 200,
