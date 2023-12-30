@@ -8,5 +8,6 @@ router
     .get('/totaisDoChecklist/:email', ChecklistController.totaisDoChecklist)
     .post('/criaItemChecklist', ChecklistController.cadastroItemChecklist)
     .post('/marcaItemChecklist', ChecklistController.marcacaoItemChecklist)
+    .post('/desmarcaItemChecklist', ChecklistController.desmarcacaoItemChecklist)
 
 export default router;

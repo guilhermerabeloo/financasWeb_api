@@ -59,7 +59,6 @@ Checklist.prototype.buscaTotaisChecklist = async (req, res) => {
 
         const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
         const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
-        console.log(userId)
 
         if(!userId) {
             const result = {
@@ -185,6 +184,75 @@ Checklist.prototype.marcaItemChecklist = async (req, res) => {
             code: 200,
             msg: true,
             data: "Item de checklist marcado com sucesso!",
+        };
+
+        return result        
+    } catch (err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
+        }
+        
+        return result
+    }
+}
+
+Checklist.prototype.desmarcaItemChecklist = async (req, res) => {
+    const { checklistmensal_id, email  } = req.body;
+
+    try {
+        if(!email || !checklistmensal_id) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        const resultItem = await pgPool(`
+            select 
+                tc.id
+            from temp_checklistmensal tc 
+            inner join checklistmensal c on c.id = tc.item_id 
+            inner join usuarios u on u.id = c.user_id 
+            where
+                u.id = $1
+                and c.id = $2  
+        `, [userId, checklistmensal_id])
+        const tempItemId = resultItem.rows[0] && resultItem.rows[0].id;
+
+        if(!tempItemId) {
+            const result = {
+                code: 404,
+                hint: 'Item não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        await pgPool(`delete from temp_checklistmensal tc where tc.id = $1`, [tempItemId])
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: "Item de checklist desmarcado com sucesso!",
         };
 
         return result        
