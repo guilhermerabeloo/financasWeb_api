@@ -5,6 +5,7 @@ const router = express.Router();
 
 router
     .get('/checklistUsuario/:email', ChecklistController.itensDoChecklist)
+    .get('/totaisDoChecklist/:email', ChecklistController.totaisDoChecklist)
     .post('/criaItemChecklist', ChecklistController.cadastroItemChecklist)
     .post('/marcaItemChecklist', ChecklistController.marcacaoItemChecklist)
 

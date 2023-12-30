@@ -15,6 +15,20 @@ class ChecklistController {
             })
     }
 
+    static totaisDoChecklist = async (req, res) => {
+        const checklistModel = new Checklist();
+
+        await checklistModel
+            .buscaTotaisChecklist(req)
+            .then((resultado) => {
+                res.status(200).send(resultado)
+            })
+            .catch((err) => {
+                console.log(err)
+                res.status(500).send(err)
+            })
+    }
+
     static cadastroItemChecklist = async (req, res) => {
         const checklistModel = new Checklist();
 
