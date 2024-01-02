@@ -67,4 +67,32 @@ ALTER TABLE temp_checklistmensal
 ADD CONSTRAINT fk_tempChecklist_checklist
 FOREIGN KEY (item_id) REFERENCES checklistmensal(id)
 
-
+CREATE OR REPLACE FUNCTION renova_checklist(p_user_id INTEGER)
+RETURNS VOID AS
+$$
+BEGIN
+    BEGIN
+        -- Inserção dos dados na tabela movimento
+        INSERT INTO movimento 
+            (descricao, data, valor, tipomovimento_id, user_id, checklistmensal_id)
+        SELECT 
+            c.item,
+            tc.data,
+            c.valor,
+            2 as tipomovimento,
+            p_user_id,
+            c.id 
+        FROM temp_checklistmensal tc 
+        INNER JOIN checklistmensal c ON c.id = tc.item_id 
+        WHERE c.user_id = p_user_id;
+        
+        -- Exclusão dos dados da tabela temporária
+        DELETE FROM temp_checklistmensal
+        WHERE item_id IN (
+            SELECT id FROM checklistmensal
+            WHERE user_id = p_user_id
+        );
+    END;
+END;
+$$
+LANGUAGE plpgsql;
