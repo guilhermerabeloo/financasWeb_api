@@ -9,5 +9,6 @@ router
     .post('/criaItemChecklist', ChecklistController.cadastroItemChecklist)
     .post('/marcaItemChecklist', ChecklistController.marcacaoItemChecklist)
     .post('/desmarcaItemChecklist', ChecklistController.desmarcacaoItemChecklist)
+    .post('/renovaChecklist', ChecklistController.renovacaoDoChecklist)
 
 export default router;

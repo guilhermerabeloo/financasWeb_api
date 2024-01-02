@@ -70,6 +70,20 @@ class ChecklistController {
                 res.status(500).send(err)
             })
     }
+
+    static renovacaoDoChecklist = async (req, res) => {
+        const checklistModel = new Checklist();
+
+        await checklistModel
+            .renovaChecklist(req)
+            .then((resultado) => {
+                res.status(200).send(resultado)
+            })
+            .catch((err) => {
+                console.log(err)
+                res.status(500).send(err)
+            })
+    }
 }
 
 export default ChecklistController;

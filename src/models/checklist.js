@@ -268,4 +268,51 @@ Checklist.prototype.desmarcaItemChecklist = async (req, res) => {
     }
 }
 
+Checklist.prototype.renovaChecklist = async (req, res) => {
+    const { email  } = req.body;
+
+    try {
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        await pgPool(`SELECT renova_checklist($1)`, [ userId ])
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: "Checklist renovado com sucesso!",
+        };
+
+        return result        
+    } catch (err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
+        }
+        
+        return result
+    }
+}
+
 export default Checklist;
