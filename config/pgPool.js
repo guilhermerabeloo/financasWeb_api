@@ -1,8 +1,7 @@
-import pg from 'pg';
+import pgPromise from 'pg-promise';
 import dotenv from "dotenv";
 
-const { Pool } = pg;
-
+const pgp = pgPromise();
 const env = dotenv.config().parsed;
 
 const dbConfig = {
@@ -16,7 +15,8 @@ const dbConfig = {
     connectionTimeoutMillis: 5000,
 }
 
-const pool = new Pool(dbConfig);
+const db = pgp(dbConfig);
+const pool = db.$pool;
 
 pool.on('acquire', () => {
     console.count('-----Cliente novo gerado-------')
@@ -32,39 +32,17 @@ pool.on('connect', () => {
 })
 
 async function pgPool(sqlQuery, values) {
-    return new Promise((resolve, reject) => {
-        pool
-            .connect()
-            .then((client) => {
-                if(values) {
-                    client
-                        .query(sqlQuery, values)
-                        .then((e) => {
-                            resolve(e);
-                        })
-                        .catch((e) => {
-                            reject(e);
-                        })
-                        .finally(() => {
-                            client.release();
-                        })
-                } else {
-                    client
-                        .query(sqlQuery)
-                        .then((e) => {
-                            resolve(e);
-                        })
-                        .catch((e) => {
-                            reject(e);
-                        })
-                        .finally(() => {
-                            client.release();
-                        })
-                }
-            })
-            .catch((e) => {
-                reject(e);
-            });
+    return new Promise(async (resolve, reject) => {
+        const client = await pool.connect();
+
+        try {
+            const result = values ? await client.query(sqlQuery, values) : await client.query(sqlQuery);
+            resolve(result);
+        } catch(error) {
+            reject(error)
+        } finally {
+            client.release();
+        }
     });
 };
 
