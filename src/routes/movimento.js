@@ -5,5 +5,6 @@ const router = express.Router();
 
 router
     .get('/buscaTipoMovimento', MovimentoController.tiposMovimento)
+    .post('/criaMovimento', MovimentoController.criacaoMovimento)
 
 export default router;

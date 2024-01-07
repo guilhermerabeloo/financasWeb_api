@@ -37,6 +37,7 @@ async function pgPool(sqlQuery, values) {
 
         try {
             const result = values ? await client.query(sqlQuery, values) : await client.query(sqlQuery);
+
             resolve(result);
         } catch(error) {
             reject(error)
