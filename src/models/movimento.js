@@ -34,8 +34,10 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                     m.descricao 
                     , to_char(m.data, 'DD/MM/YYYY') AS data
                     , m.valor
+                    , t.item as tipo
                 from movimento m 
                 inner join usuarios as u on u.id = m.user_id 
+                inner join tipomovimento t on t.id = tipomovimento_id
                 where 
                     m.user_id = ${userId}
             )
@@ -45,12 +47,64 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                     c.item as descricao
                     , to_char(tc.data, 'DD/MM/YYYY') AS data
                     , c.valor
+                    , 'Despesa' as tipo
                 from checklistmensal c 
                 inner join temp_checklistmensal tc on tc.item_id = c.id 
                 where 
                     c.user_id = ${userId}
             )
             order by data
+        `)
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: data.rows,
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
+        }
+        
+        return result
+    }
+}
+
+Movimento.prototype.buscaTotaisMovimentos = async (req, res) => {
+    const { email } = req.params;
+    
+    try {
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+        
+        const data = await pgPool(`
+            select 
+                (select SUM(m.valor) as receita from movimento m inner join usuarios as u on u.id = m.user_id where m.user_id = 1 and m.tipomovimento_id = 2) as receitas,
+                (select SUM(m.valor) from movimento m inner join usuarios as u on u.id = m.user_id where m.user_id = 1 and m.tipomovimento_id = 1) + (select sum(c.valor) from checklistmensal c inner join temp_checklistmensal tc on tc.item_id = c.id where c.user_id = 1) as despesa
         `)
 
         const result = {
