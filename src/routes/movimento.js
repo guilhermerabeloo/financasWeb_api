@@ -7,6 +7,7 @@ router
     .get('/buscaTipoMovimento', MovimentoController.tiposMovimento)
     .get('/listaMovimentos/:email', MovimentoController.listagemDeMovimentos)
     .get('/totaisMovimentos/:email', MovimentoController.totaisDeMovimentos)
+    .get('/totaisMovimentosAtuais/:email', MovimentoController.totaisDeMovimentosAtuais)
     .post('/criaMovimento', MovimentoController.criacaoMovimento)
 
 export default router;
