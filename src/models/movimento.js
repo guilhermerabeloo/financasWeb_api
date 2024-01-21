@@ -53,7 +53,7 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                 where 
                     c.user_id = ${userId}
             )
-            order by data
+            order by data desc
         `)
 
         const result = {

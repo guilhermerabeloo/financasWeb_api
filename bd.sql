@@ -67,6 +67,37 @@ ALTER TABLE temp_checklistmensal
 ADD CONSTRAINT fk_tempChecklist_checklist
 FOREIGN KEY (item_id) REFERENCES checklistmensal(id)
 
+create table objetivo (
+	id SERIAL,
+	nome VARCHAR(200) not null,
+	dataInicio DATE not null,
+	dataFinal DATE not null,
+	valorInicio NUMERIC(9,2) not null,
+	valorFinal NUMERIC(9,2) not null,
+	user_id INTEGER not null unique,
+	data_create TIMESTAMP DEFAULT current_timestamp not null,
+	
+	primary key(id)
+)
+
+alter table objetivo add constraint FK_objetivo_usuarios
+foreign key (user_id) references usuarios(id)
+
+create table meta_objetivo (
+	id SERIAL,
+	competencia VARCHAR(8) not null,
+	data DATE not null,
+	meta NUMERIC(9,2) not null,
+	realizado NUMERIC(9,2),
+	atingido CHAR(1),
+	objetivo_id INTEGER not null,
+	
+	primary key(id)
+)
+
+alter table meta_objetivo add constraint FK_metaObjetivo_objetivo
+foreign key (objetivo_id) references objetivo(id)
+
 CREATE OR REPLACE FUNCTION renova_checklist(p_user_id INTEGER)
 RETURNS VOID AS
 $$
