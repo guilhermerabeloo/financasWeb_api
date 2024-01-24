@@ -75,6 +75,7 @@ create table objetivo (
 	valorInicio NUMERIC(9,2) not null,
 	valorFinal NUMERIC(9,2) not null,
 	user_id INTEGER not null unique,
+	tipo_id INTEGER not null,
 	data_create TIMESTAMP DEFAULT current_timestamp not null,
 	
 	primary key(id)
@@ -82,6 +83,9 @@ create table objetivo (
 
 alter table objetivo add constraint FK_objetivo_usuarios
 foreign key (user_id) references usuarios(id)
+
+alter table objetivo add constraint FK_objetivo_tipo
+foreign key (tipo_id) references tipoObjetivo(id)
 
 create table meta_objetivo (
 	id SERIAL,
@@ -96,6 +100,19 @@ create table meta_objetivo (
 )
 
 alter table meta_objetivo add constraint FK_metaObjetivo_objetivo
+foreign key (objetivo_id) references objetivo(id)
+
+create table temp_objetivo (
+	user_id INT unique not null,
+	objetivo_id INT unique not null,
+	primary key(user_id, objetivo_id)
+)
+
+
+alter table	temp_objetivo add constraint fk_tempObjetivo_objetivo
+foreign key (user_id) references usuarios(id)
+
+alter table	temp_objetivo add constraint fk_tempObjetivo_objetivos
 foreign key (objetivo_id) references objetivo(id)
 
 CREATE OR REPLACE FUNCTION renova_checklist(p_user_id INTEGER)
@@ -127,3 +144,28 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION cria_objetivo(p_user_id INTEGER, p_tipo_id INTEGER, p_nome VARCHAR(200), p_dataInicio DATE, p_dataFinal DATE, p_valorInicio numeric(9,2), p_valorFinal numeric(9,2))
+RETURNS INT AS
+$$
+DECLARE
+    obj_id INT;
+BEGIN
+    -- Inserir dados na tabela 'objetivo' e obter o ID gerado
+    INSERT INTO objetivo 
+        (nome, dataInicio, dataFinal, valorInicio, valorFinal, user_id, tipo_id)
+    VALUES 
+        (p_nome, p_dataInicio, p_dataFinal, p_valorInicio, p_valorFinal, p_user_id, p_tipo_id)
+    RETURNING id INTO obj_id;
+
+    -- Inserir dados na tabela 'temp_objetivo' com a chave primária composta
+    INSERT INTO temp_objetivo
+        (user_id, objetivo_id)
+    VALUES
+        (p_user_id, obj_id);
+
+    RETURN obj_id;
+END;
+$$
+LANGUAGE plpgsql;
+
