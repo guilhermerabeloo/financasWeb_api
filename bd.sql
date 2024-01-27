@@ -169,3 +169,19 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION cancela_criacao_objetivo(p_user_id INTEGER)
+RETURNS void AS
+$$
+DECLARE
+    obj_id INT;
+begin
+	delete from temp_objetivo
+	where 
+		user_id = p_user_id;
+	
+	delete from objetivo
+	where 
+		user_id = p_user_id;
+END;
+$$
+LANGUAGE plpgsql;

@@ -4,7 +4,6 @@ function Objetivo() {}
 
 Objetivo.prototype.criaCabecalhoObjetivo = async (req, res) => {
     const { email, nome, dataInicio, dataFinal, valorInicial, valorFinal, id, tipoObjetivo } = req.body;
-    console.log(Number(tipoObjetivo), nome, dataInicio, dataFinal, valorInicial, valorFinal)
     try {
         if(!email || !nome || !dataInicio || !dataFinal || !valorFinal) {
             const result = {
@@ -117,19 +116,20 @@ Objetivo.prototype.criaMetasObjetivo = async (req, res) => {
         const meses = metas.map((meta) => {
             return `('${meta.competencia}', '${meta.data}', ${meta.valor}, ${objetivoId})`;
         });
-        
-        await pgPool(`
-            begin
-                INSERT INTO meta_objetivo 
-                (competencia, data, meta, objetivo_id)
-                VALUES
-                ${meses.join(', ')};
-                DELETE FROM temp_objetivo
-                WHERE
-                    user_id = ${userId};
-            end
-        `)
 
+        const insert = `
+            INSERT INTO meta_objetivo 
+            (competencia, data, meta, objetivo_id)
+            VALUES
+            ${[meses.join(', ')]};
+        `
+        await pgPool(insert);
+        await pgPool(`
+            DELETE FROM temp_objetivo
+            WHERE
+                user_id = $1;
+        `, [userId])
+        
         const result = {
             code: 200,
             msg: true,
@@ -139,7 +139,7 @@ Objetivo.prototype.criaMetasObjetivo = async (req, res) => {
         return result
     } catch(err) {
         const result = {
-            code: err.code || 500,
+            code: 500,
             hint: err.hint || 'Erro interno',
             msg: false,
         }
@@ -268,6 +268,55 @@ Objetivo.prototype.buscaObjetivoTemp = async (req, res) => {
             code: err.code || 500,
             hint: err.hint || 'Erro interno',
             msg: false,
+        }
+        
+        return result
+    }
+}
+
+Objetivo.prototype.cancelaObjetivoTemp = async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        await pgPool(`
+            SELECT cancela_criacao_objetivo($1)
+        `, [userId])
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: 'Objetivo cancelado com sucesso',
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+            error: err,
         }
         
         return result

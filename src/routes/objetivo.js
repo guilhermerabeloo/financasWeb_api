@@ -8,5 +8,6 @@ router
     .get('/buscaObjetivoTemp/:email', ObjetivoController.consultaObjetivoTemp)
     .post('/criaCabecalhoObjetivo', ObjetivoController.criacaoCabecalhoObjetivo)
     .post('/criaMetasObjetivo', ObjetivoController.criacaoMetasObjetivo)
+    .delete('/cancelaObjetivoTemp/:email', ObjetivoController.cancelamentoObjetivoTemp)
 
 export default router
