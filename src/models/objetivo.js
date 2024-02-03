@@ -323,4 +323,83 @@ Objetivo.prototype.cancelaObjetivoTemp = async (req, res) => {
     }
 }
 
+Objetivo.prototype.objetivoCompleto = async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+        
+        const infoObjetivo = await pgPool(`
+            select 
+                o.nome 
+                , TO_CHAR(o.datainicio, 'YYYY-MM-DD') as datainicio 
+                , TO_CHAR(o.datafinal, 'YYYY-MM-DD') as datafinal 
+                , o.valorinicio 
+                , o.valorfinal 
+            from objetivo o
+            where 
+                O.user_id = $1;
+        `, [userId])
+
+        const metasObjetivo = await pgPool(`
+            select 
+                mo.competencia as competencia
+                , mo.meta as meta
+                , case 
+                    when mo.realizado is null then 0
+                    else mo.realizado
+                end as realizado	
+                , case 
+                    when mo.atingido is null then '0'
+                    else mo.atingido
+                end as atingido
+            from objetivo o 
+            inner join meta_objetivo mo on mo.objetivo_id = o.id
+            where 
+                O.user_id = $1
+            order by mo.id;
+        `, [userId])
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: {
+                cabecalho: infoObjetivo.rows,
+                metasObjetivo: metasObjetivo.rows
+            },
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+        }
+        
+        return result
+    }
+
+}
+
 export default Objetivo;

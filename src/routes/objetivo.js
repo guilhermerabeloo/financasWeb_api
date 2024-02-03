@@ -6,6 +6,7 @@ const router = express.Router();
 router
     .get('/buscaObjetivo/:email', ObjetivoController.consultaObjetivo)
     .get('/buscaObjetivoTemp/:email', ObjetivoController.consultaObjetivoTemp)
+    .get('/buscaObjetivoCompleto/:email', ObjetivoController.consultaObjetivoCompleto)
     .post('/criaCabecalhoObjetivo', ObjetivoController.criacaoCabecalhoObjetivo)
     .post('/criaMetasObjetivo', ObjetivoController.criacaoMetasObjetivo)
     .delete('/cancelaObjetivoTemp/:email', ObjetivoController.cancelamentoObjetivoTemp)
