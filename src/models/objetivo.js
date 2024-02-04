@@ -363,14 +363,16 @@ Objetivo.prototype.objetivoCompleto = async (req, res) => {
 
         const metasObjetivo = await pgPool(`
             select 
-                mo.competencia as competencia
+                mo.id
+                , mo.competencia as competencia
                 , mo.meta as meta
                 , case 
                     when mo.realizado is null then 0
                     else mo.realizado
                 end as realizado	
+                , mo.realizado / mo.meta * 100 as percAtingido
                 , case 
-                    when mo.atingido is null then '0'
+                    when mo.atingido is null then 'x'
                     else mo.atingido
                 end as atingido
             from objetivo o 
