@@ -148,6 +148,80 @@ Objetivo.prototype.criaMetasObjetivo = async (req, res) => {
     }
 }
 
+
+Objetivo.prototype.informaRealizado = async (req, res) => {
+    const { email, idMeta, valorRealizado, atingido } = req.body;
+
+    try {
+        if(!email || !idMeta || !valorRealizado || !atingido) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        const resultObj = await pgPool(`
+            select 
+                mo.id 
+            from meta_objetivo mo 
+            inner join objetivo o on o.id = mo.objetivo_id 
+            where
+                o.user_id = $1 
+                and mo.id = $2`, 
+        [userId, idMeta]);
+        
+        if(resultObj.rowCount == 0) {
+            const result = {
+                code: 404,
+                hint: 'Meta não encontrada',
+                msg: false,
+            }
+            
+            throw result
+        }
+
+        await pgPool(`
+            update meta_objetivo 
+            set 
+                realizado = $1,
+                atingido = $2
+            where
+                id = $3;
+        `, [valorRealizado, atingido, idMeta])
+        
+        const result = {
+            code: 200,
+            msg: true,
+            data: 'Realizado registrado com sucesso!',
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+        }
+        
+        return result
+    }
+}
+
 Objetivo.prototype.buscaObjetivo = async (req, res) => {
     const email = req.params.email;
 

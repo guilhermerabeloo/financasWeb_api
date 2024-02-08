@@ -127,7 +127,7 @@ BEGIN
             c.item,
             tc.data,
             c.valor,
-            2 as tipomovimento,
+            1 as tipomovimento,
             p_user_id,
             c.id 
         FROM temp_checklistmensal tc 

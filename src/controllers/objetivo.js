@@ -31,6 +31,21 @@ class ObjetivoController {
         }
     }
 
+    static informacaoRealizado = async (req, res) => {
+        const ObjetivoModal = new Objetivo();
+
+        try {
+            const resultado = await ObjetivoModal.informaRealizado(req);
+            if(!resultado.msg) {
+                throw resultado
+            }
+            res.status(200).send(resultado);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send(err);
+        }
+    }
+
     static consultaObjetivo = async (req, res) => {
         const ObjetivoModal = new Objetivo();
 
