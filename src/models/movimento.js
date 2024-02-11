@@ -156,10 +156,10 @@ Movimento.prototype.buscaTotaisMovimentosAtuais = async (req, res) => {
             SELECT 
                 (SELECT COALESCE(SUM(m.valor), 0) FROM movimento m 
                 INNER JOIN usuarios u ON u.id = m.user_id 
-                WHERE m.user_id = ${userId} AND m.tipomovimento_id = 2 AND DATE_TRUNC('MONTH', m.data) = DATE_TRUNC('MONTH', CURRENT_DATE)) AS receitas,
+                WHERE m.user_id = ${userId} AND m.tipomovimento_id = 2 AND DATE_TRUNC('MONTH', m.data) = DATE_TRUNC('MONTH', CURRENT_DATE) AND DATE_TRUNC('YEAR', m.data) = DATE_TRUNC('YEAR', CURRENT_DATE)) AS receitas,
                 (SELECT COALESCE(SUM(m.valor), 0) FROM movimento m 
                 INNER JOIN usuarios u ON u.id = m.user_id 
-                WHERE m.user_id = ${userId} AND m.tipomovimento_id = 1 AND DATE_TRUNC('MONTH', m.data) = DATE_TRUNC('MONTH', CURRENT_DATE)) 
+                WHERE m.user_id = ${userId} AND m.tipomovimento_id = 1 AND DATE_TRUNC('MONTH', m.data) = DATE_TRUNC('MONTH', CURRENT_DATE) AND DATE_TRUNC('YEAR', m.data) = DATE_TRUNC('YEAR', CURRENT_DATE)) 
                 +
                 (SELECT COALESCE(SUM(c.valor), 0) FROM checklistmensal c 
                 INNER JOIN temp_checklistmensal tc ON tc.item_id = c.id 

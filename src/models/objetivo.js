@@ -348,6 +348,61 @@ Objetivo.prototype.buscaObjetivoTemp = async (req, res) => {
     }
 }
 
+Objetivo.prototype.buscaMetaAtual = async (req, res) => {
+    const email = req.params.email;
+
+    try {
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
+
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+        
+        const data = await pgPool(`
+            select 
+                mo.meta 
+            from objetivo o
+            inner join meta_objetivo mo on mo.objetivo_id = o.id
+            where 
+                o.user_id = ${userId}
+                and DATE_TRUNC('MONTH', mo.data) = DATE_TRUNC('MONTH', CURRENT_DATE)
+                and DATE_TRUNC('YEAR', mo.data) = DATE_TRUNC('YEAR', CURRENT_DATE)      
+        `)
+
+        const result = {
+            code: 200,
+            msg: true,
+            data: data.rows,
+        };
+
+        return result
+    } catch(err) {
+        const result = {
+            code: err.code || 500,
+            hint: err.hint || 'Erro interno',
+            msg: false,
+        }
+        
+        return result
+    }
+}
+
 Objetivo.prototype.cancelaObjetivoTemp = async (req, res) => {
     const { email } = req.params;
 

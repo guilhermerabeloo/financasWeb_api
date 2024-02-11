@@ -7,6 +7,7 @@ router
     .get('/buscaObjetivo/:email', ObjetivoController.consultaObjetivo)
     .get('/buscaObjetivoTemp/:email', ObjetivoController.consultaObjetivoTemp)
     .get('/buscaObjetivoCompleto/:email', ObjetivoController.consultaObjetivoCompleto)
+    .get('/buscaMetaAtual/:email', ObjetivoController.consultaMetaAtual)
     .post('/criaCabecalhoObjetivo', ObjetivoController.criacaoCabecalhoObjetivo)
     .post('/criaMetasObjetivo', ObjetivoController.criacaoMetasObjetivo)
     .post('/informaRealizado', ObjetivoController.informacaoRealizado)
