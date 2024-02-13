@@ -29,6 +29,14 @@ create table tipoMovimento (
 	primary key(id)
 )
 
+create table tagmovimento (
+	id SERIAL,
+	tag VARCHAR(40),
+	cor VARCHAR(7),
+	
+	primary key(id)
+)
+
 create table movimento (
 	id SERIAL,
 	descricao VARCHAR(100) not null,
@@ -37,11 +45,14 @@ create table movimento (
 	tipoMovimento_id INTEGER not null,
 	user_id INTEGER not null,
 	checklistMensal_id INTEGER not null,
+	tag_id INTEGER,
 	data_create TIMESTAMP DEFAULT current_timestamp not null,
 	
 	primary key(id)
 )
 
+ALTER TABLE movimento ADD CONSTRAINT FK_movimento_tag
+FOREIGN KEY (tag_id) REFERENCES tagmovimento(id)
 
 ALTER TABLE movimento ADD CONSTRAINT FK_movimento_usuarios
 FOREIGN KEY (user_id) REFERENCES usuarios(id)
@@ -122,13 +133,14 @@ BEGIN
     BEGIN
         -- Inserção dos dados na tabela movimento
         INSERT INTO movimento 
-            (descricao, data, valor, tipomovimento_id, user_id, checklistmensal_id)
+            (descricao, data, valor, tipomovimento_id, user_id, checklistmensal_id, tag_id)
         SELECT 
             c.item,
             tc.data,
             c.valor,
             1 as tipomovimento,
             p_user_id,
+			c.tag_id,
             c.id 
         FROM temp_checklistmensal tc 
         INNER JOIN checklistmensal c ON c.id = tc.item_id 

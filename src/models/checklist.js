@@ -6,25 +6,63 @@ Checklist.prototype.buscaChecklist = async (req, res) => {
     const email = req.params.email;
 
     try {
-        const sqlQuery = `
-        select 
-            ch.id,
-            ch.item,
-            ch.valor,
-            ch.dia_mes,
-            case
-                when tch.checked = '1' then 1
-                else 0
-            end checked
-        from checklistMensal as ch
-        left join usuarios as u on u.id = ch.user_id 
-        left join temp_checklistmensal as tch on ch.id = tch.item_id
-        where 
-            u.email = '${email}'
-        order by 5, 4 
-        `
+        if(!email) {
+            const result = {
+                code: 400,
+                hint: 'Parâmetros inválidos',
+                msg: false,
+            };
+            throw result;
+        }
 
-        const data = await pgPool(sqlQuery)
+        const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
+        const userId = resultUsuario.rows[0] && resultUsuario.rows[0].id;
+
+        if(!userId) {
+            const result = {
+                code: 404,
+                hint: 'Usuário não encontrado',
+                msg: false,
+            }
+
+            throw result
+        }
+
+        const data = await pgPool(`
+            select 
+                ch.id,
+                ch.item,
+                ch.valor,
+                ch.dia_mes,
+                case
+                    when tch.checked = '1' then 1
+                    else 0
+                end checked,
+                case
+                    when tm.id = null then 0
+                    else tm.id
+                end tag_id,
+                case
+                    when tm.tag = null then ''
+                    else tm.tag
+                end tag,
+                case
+                    when tm.corfundo = null then ''
+                    else tm.corfundo
+                end corfundo,
+                case
+                    when tm.corletra = null then ''
+                    else tm.corletra
+                end corletra
+            from checklistMensal as ch
+            left join usuarios as u on u.id = ch.user_id 
+            left join temp_checklistmensal as tch on ch.id = tch.item_id
+            left join tagmovimento as tm on tm.id = ch.tag_id 
+            where 
+                ch.user_id = $1
+            order by 5, 4
+        `, [userId])
+
         const result = {
             code: 200,
             msg: true,
@@ -96,10 +134,10 @@ Checklist.prototype.buscaTotaisChecklist = async (req, res) => {
 }
 
 Checklist.prototype.criaItemChecklist = async (req, res) => {
-    const { email, item, valor, dia_mes } = req.body;
-
+    const { email, item, valor, dia_mes, tag } = req.body;
+    console.log(req.body)
     try {
-        if(!email || !item || !valor || !dia_mes) {
+        if(!email || !item || !valor || !dia_mes || !tag) {
             const result = {
                 code: 400,
                 hint: 'Parâmetros inválidos',
@@ -123,10 +161,10 @@ Checklist.prototype.criaItemChecklist = async (req, res) => {
 
         await pgPool(`
             INSERT INTO checklistmensal 
-            (item, valor, dia_mes, user_id)
+            (item, valor, dia_mes, user_id, tag_id)
             VALUES
-            ($1, $2, $3, $4)
-        `, [item, valor, dia_mes, userId])
+            ($1, $2, $3, $4, $5)
+        `, [item, valor, dia_mes, userId, tag])
 
         const result = {
             code: 200,

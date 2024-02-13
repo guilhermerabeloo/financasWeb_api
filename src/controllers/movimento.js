@@ -45,6 +45,21 @@ class MovimentoController {
         }
     }
 
+    static listagemTagsMovimentos = async (req, res) => {
+        const MovimentoModel = new Movimento();
+
+        try {
+            const resultado = await MovimentoModel.buscaTagsMovimentos(req);
+            if(!resultado.msg) {
+                throw resultado
+            }
+            res.status(200).send(resultado);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send(err);
+        }
+    }
+
     static totaisDeMovimentosAtuais = async (req, res) => {
         const MovimentoModel = new Movimento();
 
