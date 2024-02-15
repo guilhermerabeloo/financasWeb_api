@@ -33,6 +33,7 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                 select 
                     m.descricao 
                     , to_char(m.data, 'DD/MM/YYYY') AS data
+                    , to_char(m.data, 'YYYY-MM-DD') as dataOriginal
                     , m.valor
                     , t.item as tipo
                     , tm.tag
@@ -50,6 +51,7 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                 select 
                     c.item as descricao
                     , to_char(tc.data, 'DD/MM/YYYY') AS data
+                    , to_char(tc.data, 'YYYY-MM-DD') as dataOriginal
                     , c.valor
                     , 'Despesa' as tipo
                     , tm.tag
@@ -61,7 +63,7 @@ Movimento.prototype.listaMovimentos = async (req, res) => {
                 where 
                     c.user_id = $1
             )
-            order by data desc
+            order by dataOriginal desc
         `, [userId])
 
         const result = {
@@ -149,7 +151,6 @@ Movimento.prototype.buscaTagsMovimentos = async (req, res) => {
 
         const resultUsuario = await pgPool(`SELECT id FROM usuarios WHERE email = $1`, [email]);
         const userId = resultUsuario.rows[0];
-        console.log(userId)
 
         if(!userId) {
             const result = {
@@ -299,7 +300,6 @@ Movimento.prototype.criaMovimento = async (req, res) => {
         const movimentos = dados.map((movimento) => {
             return `(${userId}, '${movimento.descricao}', '${movimento.data}', ${movimento.valor}, ${movimento.tipomovimento_id}, ${movimento.checklistmensal_id}, ${movimento.tag})`;
         });
-        console.log(dados)
 
         const sqlText = `
             insert into movimento 

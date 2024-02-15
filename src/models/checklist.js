@@ -135,7 +135,7 @@ Checklist.prototype.buscaTotaisChecklist = async (req, res) => {
 
 Checklist.prototype.criaItemChecklist = async (req, res) => {
     const { email, item, valor, dia_mes, tag } = req.body;
-    console.log(req.body)
+
     try {
         if(!email || !item || !valor || !dia_mes || !tag) {
             const result = {
