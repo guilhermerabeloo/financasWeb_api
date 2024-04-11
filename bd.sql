@@ -47,6 +47,7 @@ create table movimento (
 	checklistMensal_id INTEGER not null,
 	tag_id INTEGER,
 	data_create TIMESTAMP DEFAULT current_timestamp not null,
+	competencia VARCHAR(8) NOT NULL,
 	
 	primary key(id)
 )
@@ -197,3 +198,51 @@ begin
 END;
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION relatorio_lancamentos(p_user_id integer, p_lancamento varchar(150), p_dtInicio date, p_dtFinal date)
+RETURNS TABLE (competencia varchar(10), valor numeric)
+AS $$
+begin
+	DROP TABLE IF EXISTS temp_intervalomeses;
+	DROP TABLE IF EXISTS temp_competencias;
+	CREATE TEMP TABLE temp_intervalomeses (
+	    data timestamp
+	);
+	CREATE TEMP TABLE temp_competencias (
+	    competencia varchar(10)
+	);
+	INSERT INTO temp_intervalomeses (data)
+	    SELECT 
+	        generate_series(
+	            DATE_TRUNC('MONTH', p_dtInicio::DATE),
+	            DATE_TRUNC('MONTH', p_dtFinal::DATE),
+	            '1 month'::INTERVAL
+	        ) AS mes;
+	INSERT INTO temp_competencias (competencia)
+		select 
+			case
+				when EXTRACT(MONTH FROM data) = 1 then 'JAN '
+				when EXTRACT(MONTH FROM data) = 2 then 'FEV '
+				when EXTRACT(MONTH FROM data) = 3 then 'MAR '
+				when EXTRACT(MONTH FROM data) = 4 then 'ABR '
+				when EXTRACT(MONTH FROM data) = 5 then 'MAI '
+				when EXTRACT(MONTH FROM data) = 6 then 'JUN '
+				when EXTRACT(MONTH FROM data) = 7 then 'JUL '
+				when EXTRACT(MONTH from data) = 8 then 'AGO '
+				when EXTRACT(MONTH FROM data) = 9 then 'SET '
+				when EXTRACT(MONTH FROM data) = 10 then 'OUT '
+				when EXTRACT(MONTH FROM data) = 11 then 'NOV '
+				when EXTRACT(MONTH FROM data) = 12 then 'DEZ '
+			end || EXTRACT(YEAR FROM data) as competencia
+		from temp_intervalomeses;
+	RETURN QUERY
+	select 
+		tc.competencia,
+		case 
+			when m.valor is null then 0
+			else m.valor
+		end as valor
+	from temp_competencias tc
+	left join movimento m on m.competencia = tc.competencia and descricao = p_lancamento and m.user_id = p_user_id;
+end;
+$$ language plpgsql;

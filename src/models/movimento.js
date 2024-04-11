@@ -298,12 +298,12 @@ Movimento.prototype.criaMovimento = async (req, res) => {
             throw result
         }
         const movimentos = dados.map((movimento) => {
-            return `(${userId}, '${movimento.descricao}', '${movimento.data}', ${movimento.valor}, ${movimento.tipomovimento_id}, ${movimento.checklistmensal_id}, ${movimento.tag})`;
+            return `(${userId}, '${movimento.descricao}', '${movimento.data}', ${movimento.valor}, ${movimento.tipomovimento_id}, ${movimento.checklistmensal_id}, ${movimento.tag}, '${movimento.competencia}')`;
         });
 
         const sqlText = `
             insert into movimento 
-            (user_id, descricao, data, valor, tipomovimento_id, checklistmensal_id, tag_id)
+            (user_id, descricao, data, valor, tipomovimento_id, checklistmensal_id, tag_id, competencia)
             values
             ${movimentos.join(', ')}
         `
