@@ -273,6 +273,7 @@ Movimento.prototype.buscaTipoMovimento = async (req, res) => {
 
 Movimento.prototype.criaMovimento = async (req, res) => {
     const { email, dados } = req.body;
+    console.log(dados)
     
     try {
         if(!email || !dados) {

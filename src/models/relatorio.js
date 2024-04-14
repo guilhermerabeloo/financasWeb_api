@@ -43,38 +43,56 @@ Relatorio.prototype.lancamentosUsuario = async (req, res) => {
             order by 1 
         `, [userId, dtInicio, dtFinal])
 
-        return Promise.all(nomesMovimentos.rows.map(async (m) => {
+        const movimentos = await Promise.all(nomesMovimentos.rows.map(async (m) => {
             const lancamentos = await pgPool(`
                 SELECT * FROM relatorio_lancamentos($1, $2, $3, $4)
-            `, [userId, m.descricao, dtInicio, dtFinal])
-
+            `, [userId, m.descricao, dtInicio, dtFinal]);
+    
             const linhas = lancamentos.rows;
             let competencias = [];
             let valores = [];
-
+    
             linhas.forEach((i) => {
-                competencias.push(i.competencia)
-                valores.push(i.valor)
-            })
-            const resultado = {
+                competencias.push(i.competencia);
+                valores.push(i.valor);
+            });
+    
+            return {
                 rotulo: m.descricao,
                 tipo: m.tipomovimento,
                 competencias: competencias,
                 valores: valores
-            }
-            
-            return resultado
-        })).then(movimentos => {
-            return {
-                code: 200,
-                msg: true,
-                data: movimentos,
             };
+        }));
+    
+        const checklistResult = await pgPool(`
+            select * from relatorio_lancamentos_checklist($1, $2, $3)
+        `, [userId, dtInicio, dtFinal]);
+
+        let competenciasChecklist = [];
+        let valoresChecklist = [];
+        checklistResult.rows.forEach((c) => {
+            competenciasChecklist.push(c.competencia);
+            valoresChecklist.push(c.totalchecklist);
         })
+
+        const lancamentosChecklist = {
+            rotulo: 'Gastos Fixos',
+            tipo: 'D',
+            competencias: competenciasChecklist,
+            valores: valoresChecklist
+        }
+        
+        const lancamentos = [...movimentos, lancamentosChecklist]
+        return {
+            code: 200,
+            msg: true,
+            data: lancamentos,
+        };
     } catch(err) {
         const result = {
             code: 500,
-            hint: err.hint || 'Erro interno',
+            hint: err || 'Erro interno',
             msg: false,
         }
         
