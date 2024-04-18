@@ -5,5 +5,6 @@ const router = express.Router();
 
 router
     .post('/lancamentosUsuario', RelatorioController.gerarRelLancamentosUsuario)
+    .post('/relatorioGraficos', RelatorioController.gerarRelGraficos)
 
 export default router

@@ -315,5 +315,109 @@ begin
 	        where user_id = p_user_id
 	    ) cm;
 end;
-$function$
-;
+$function$;
+
+
+CREATE OR REPLACE FUNCTION relatorio_totais_por_periodo(p_user_id integer, p_tipo_movimento integer, p_dtinicio date, p_dtfinal date)
+ RETURNS TABLE(competencia character varying, valor numeric, datacompetencia timestamp without time zone)
+ LANGUAGE plpgsql
+AS $function$
+begin
+	DROP TABLE IF EXISTS temp_intervalomeses;
+	DROP TABLE IF EXISTS temp_competencias;
+	CREATE TEMP TABLE temp_intervalomeses (
+	    data timestamp
+	);
+	CREATE TEMP TABLE temp_competencias (
+	    competencia varchar(10),
+	    data TIMESTAMP
+	);
+	INSERT INTO temp_intervalomeses (data)
+	    SELECT 
+	        generate_series(
+	            DATE_TRUNC('MONTH', '20240101'::DATE),
+	            DATE_TRUNC('MONTH', '20240630'::DATE),
+	            '1 month'::INTERVAL
+	        ) AS mes;
+	INSERT INTO temp_competencias (competencia, data)
+		select 
+			case
+				when EXTRACT(MONTH FROM data) = 1 then 'JAN '
+				when EXTRACT(MONTH FROM data) = 2 then 'FEV '
+				when EXTRACT(MONTH FROM data) = 3 then 'MAR '
+				when EXTRACT(MONTH FROM data) = 4 then 'ABR '
+				when EXTRACT(MONTH FROM data) = 5 then 'MAI '
+				when EXTRACT(MONTH FROM data) = 6 then 'JUN '
+				when EXTRACT(MONTH FROM data) = 7 then 'JUL '
+				when EXTRACT(MONTH from data) = 8 then 'AGO '
+				when EXTRACT(MONTH FROM data) = 9 then 'SET '
+				when EXTRACT(MONTH FROM data) = 10 then 'OUT '
+				when EXTRACT(MONTH FROM data) = 11 then 'NOV '
+				when EXTRACT(MONTH FROM data) = 12 then 'DEZ '
+			end || EXTRACT(YEAR FROM data) as competencia,
+			data
+		from temp_intervalomeses;
+	return query
+	select
+	    tc.competencia,
+	    case 
+	    	when sum(m.valor) is null then 0
+	    	else sum(m.valor)
+	    end as valor,
+	   	tc.data as datacompetencia
+	from temp_competencias tc
+	left join movimento m on m.competencia = tc.competencia and tipomovimento_id = p_tipo_movimento and user_id = p_user_id
+	group by tc.competencia, tc.data
+	order by 3;
+end;
+$function$;
+
+
+CREATE OR REPLACE FUNCTION relatorio_total_receitasdespesas(p_user_id integer, p_dtinicio date, p_dtfinal date)
+ RETURNS TABLE(receitas numeric, despesas numeric)
+ LANGUAGE plpgsql
+AS $function$
+begin
+	return query
+	select 
+		(select 
+			SUM(valor) as receitas
+		from movimento m 
+		where 
+			m.user_id = p_user_id
+			and m.data >= p_dtinicio
+			and m.data <= p_dtfinal
+			and m.tipomovimento_id = 2),
+		(select 
+			SUM(valor) as despesas
+		from movimento m 
+		where 
+			m.user_id = p_user_id
+			and m.data >= p_dtinicio
+			and m.data <= p_dtfinal
+			and m.tipomovimento_id = 1);
+end;
+$function$;
+
+
+CREATE OR REPLACE FUNCTION relatorio_despesas_por_tag(p_user_id integer, p_dtinicio date, p_dtfinal date)
+ RETURNS TABLE(tag character varying, valor numeric)
+ LANGUAGE plpgsql
+AS $function$
+begin
+	return query
+	select 
+		t.tag,
+		sum(m.valor) as valor
+	from movimento m 
+	inner join tagmovimento t on t.id = m.tag_id 
+	where 
+		m.tipomovimento_id = 1
+		and m.data >= p_dtinicio
+		and m.data <= p_dtfinal
+		and m.user_id = p_user_id
+	group by t.tag 
+	order by 2 desc;
+end;
+$function$;
+
