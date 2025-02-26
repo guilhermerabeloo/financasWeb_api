@@ -332,8 +332,7 @@ Checklist.prototype.renovaChecklist = async (req, res) => {
             throw result
         }
 
-        const response = await pgPool(`SELECT renova_checklist($1)`, [ userId ])
-        console.log(response)
+        await pgPool(`SELECT renova_checklist($1)`, [ userId ])
         const result = {
             code: 200,
             msg: true,

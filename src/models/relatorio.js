@@ -102,7 +102,6 @@ Relatorio.prototype.lancamentosUsuario = async (req, res) => {
 
 Relatorio.prototype.relatorioGraficos = async (req, res) => {
     const { email, dtInicio, dtFinal } = req.body;
-    console.log(dtInicio, dtFinal)
 
     try {
         if(!email || !dtInicio || !dtFinal) {

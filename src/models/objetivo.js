@@ -76,7 +76,7 @@ Objetivo.prototype.criaCabecalhoObjetivo = async (req, res) => {
 
 Objetivo.prototype.criaMetasObjetivo = async (req, res) => {
     const { email, objetivo, metas } = req.body;
-
+    
     try {
         if(!email || !objetivo || !metas) {
             const result = {
@@ -151,7 +151,7 @@ Objetivo.prototype.criaMetasObjetivo = async (req, res) => {
 
 Objetivo.prototype.informaRealizado = async (req, res) => {
     const { email, idMeta, valorRealizado, atingido } = req.body;
-
+    console.log(email, idMeta, valorRealizado, atingido)
     try {
         if(!email || !idMeta || !valorRealizado || !atingido) {
             const result = {
